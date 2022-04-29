@@ -469,6 +469,8 @@ enum
   PROP_ICE_AGENT,
   PROP_LATENCY,
   PROP_SCTP_TRANSPORT,
+  PROP_MIN_RTP_PORT,
+  PROP_MAX_RTP_PORT,
 };
 
 static guint gst_webrtc_bin_signals[LAST_SIGNAL] = { 0 };
@@ -6841,6 +6843,12 @@ gst_webrtc_bin_set_property (GObject * object, guint prop_id,
       webrtc->priv->jb_latency = g_value_get_uint (value);
       _update_rtpstorage_latency (webrtc);
       break;
+    case PROP_MIN_RTP_PORT:
+      g_object_set_property (G_OBJECT (webrtc->priv->ice), "min-rtp-port", value);
+      break;
+    case PROP_MAX_RTP_PORT:
+      g_object_set_property (G_OBJECT (webrtc->priv->ice), "max-rtp-port", value);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -6917,6 +6925,12 @@ gst_webrtc_bin_get_property (GObject * object, guint prop_id,
       break;
     case PROP_SCTP_TRANSPORT:
       g_value_set_object (value, webrtc->priv->sctp_transport);
+      break;
+    case PROP_MIN_RTP_PORT:
+      g_object_get_property (G_OBJECT (webrtc->priv->ice), "min-rtp-port", value);
+      break;
+    case PROP_MAX_RTP_PORT:
+      g_object_get_property (G_OBJECT (webrtc->priv->ice), "max-rtp-port", value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -7208,6 +7222,21 @@ gst_webrtc_bin_class_init (GstWebRTCBinClass * klass)
           "The WebRTC SCTP Transport",
           GST_TYPE_WEBRTC_SCTP_TRANSPORT,
           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class,
+      PROP_MIN_RTP_PORT,
+      g_param_spec_uint ("min-rtp-port", "ICE RTP candidate min port",
+          "Minimum port for local rtp port range. "
+          "min-rtp-port must be <= max-rtp-port",
+          0, 65535, 0, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class,
+      PROP_MAX_RTP_PORT,
+      g_param_spec_uint ("max-rtp-port", "ICE RTP candidate max port",
+          "Maximum port for local rtp port range. "
+          "max-rtp-port must be >= min-rtp-port",
+          0, 65535, 65535,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS));
 
   /**
    * GstWebRTCBin::create-offer:
